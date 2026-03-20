@@ -242,7 +242,7 @@ function onRouteButtonClick(routeIndex) {
     } else {
         if (!wrongRouteIndices.includes(routeIndex)) wrongRouteIndices.push(routeIndex);
         const btn = document.querySelector(`[data-index="${routeIndex}"]`);
-        if (btn) btn.classList.add('wrong');
+        if (btn) btn.classList.add('wrong', 'disabled');
         displayRouteWithColor(routeData.features[routeIndex], '#ff1744');
     }
 }
