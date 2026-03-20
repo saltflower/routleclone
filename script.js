@@ -271,9 +271,9 @@ function shareResult() {
     const prefix = isDailyRoute ? `🚌 RoutleClone — Daily (${sys.name})` : `🚌 RoutleClone (${sys.name})`;
     let text;
     if (gaveUp) {
-        text = `${prefix}\nRoute ${routeName} — gave up after ${guessCount} guess${guessCount !== 1 ? 'es' : ''}\n${squares}`;
+        text = `${prefix}\nRoute ${routeName} — gave up after ${guessCount} guess${guessCount !== 1 ? 'es' : ''}\n${squares}\nhttps://saltflower.github.io/routleclone/`;
     } else {
-        text = `${prefix}\nRoute ${routeName} — solved in ${guessCount} guess${guessCount !== 1 ? 'es' : ''}!\n${squares}🟩`;
+        text = `${prefix}\nRoute ${routeName} — solved in ${guessCount} guess${guessCount !== 1 ? 'es' : ''}!\n${squares}🟩\nhttps://saltflower.github.io/routleclone/`;
     }
 
     navigator.clipboard.writeText(text).then(() => {
