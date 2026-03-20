@@ -249,7 +249,7 @@ function onRouteButtonClick(routeIndex) {
         }
     }
 }
-
+//fuckkkkkk
 function giveUp() {
     if (gameOver) return;
     gameOver = true;
