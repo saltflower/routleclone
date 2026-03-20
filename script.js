@@ -4,17 +4,14 @@ const TRANSIT_SYSTEMS = [
     { id: 'VTA',  name: 'VTA — Santa Clara', file: 'routes/VTA.geojson' },
     { id: 'MUNI', name: 'Muni — San Francisco', file: 'routes/MUNI.geojson' },
 ];
-
 // ─── Global state ─────────────────────────────────────────────────────────────
 let map;
 let routeLayer;
 let darkTileLayer;
 let blankTileLayer;
 let isBlankMapActive = true;
-
 let routeData = null;
 let currentSystemId = null;
-
 let targetRouteIndex = -1;
 let targetRoute = null;
 let gameOver = false;
@@ -23,9 +20,7 @@ let isDailyRound = true;
 let isDailyRoute = true;
 let wrongRouteIndices = [];
 let guessCount = 0;
-
 let sidebarOpen = true;
-
 // ─── Seeded PRNG (mulberry32) ─────────────────────────────────────────────────
 function mulberry32(seed) {
     return function () {
@@ -36,35 +31,28 @@ function mulberry32(seed) {
         return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
 }
-
 function getDailySeed() {
     const now = new Date();
     return now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
 }
-
 // ─── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
     initializeMap();
     buildSystemList();
     await switchSystem(TRANSIT_SYSTEMS[0].id);
 });
-
 function initializeMap() {
     map = L.map('map').setView([37.3382, -121.8863], 11);
-
     darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
         attribution: '© CartoDB', maxZoom: 19, minZoom: 8, detectRetina: true
     });
-
     blankTileLayer = L.tileLayer(
         'data:image/svg+xml;utf8,<svg width="256" height="256" xmlns="http://www.w3.org/2000/svg"><rect width="256" height="256" fill="%231a1a1a"/></svg>',
         { attribution: '', maxZoom: 19, minZoom: 8 }
     );
-
     blankTileLayer.addTo(map);
     routeLayer = L.featureGroup().addTo(map);
 }
-
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 function buildSystemList() {
     const list = document.getElementById('systemList');
@@ -78,24 +66,20 @@ function buildSystemList() {
         list.appendChild(btn);
     });
 }
-
 function updateSystemButtons() {
     document.querySelectorAll('.system-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-system-id') === currentSystemId);
     });
 }
-
 function toggleSidebar() {
     sidebarOpen = !sidebarOpen;
     document.getElementById('sidebar').classList.toggle('collapsed', !sidebarOpen);
 }
-
 // ─── System switching ─────────────────────────────────────────────────────────
 async function switchSystem(systemId) {
     if (systemId === currentSystemId) return;
     currentSystemId = systemId;
     updateSystemButtons();
-
     const sys = TRANSIT_SYSTEMS.find(s => s.id === systemId);
     try {
         const resp = await fetch(`./${sys.file}`);
@@ -106,37 +90,29 @@ async function switchSystem(systemId) {
         alert(`Failed to load ${sys.name}: ${err.message}`);
         return;
     }
-
     // Re-center map on the new system's routes
     routeLayer.clearLayers();
     const allLines = L.geoJSON(routeData);
     const bounds = allLines.getBounds();
     if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40] });
-
     // Reset daily state for new system
     isDailyRound = true;
-
     createRouteButtons();
     startNewGame();
 }
-
 // ─── Game logic ───────────────────────────────────────────────────────────────
 function selectTargetRoute(rng) {
     const rand = rng || Math.random.bind(Math);
     targetRouteIndex = Math.floor(rand() * routeData.features.length);
     targetRoute = routeData.features[targetRouteIndex];
 }
-
 function startNewGame() {
     if (!routeData) return;
-
     gameOver = false;
     gaveUp = false;
     wrongRouteIndices = [];
     guessCount = 0;
-
     if (isDailyRound) {
-        // Mix system id into seed so different systems have different daily routes
         const daySeed = getDailySeed();
         const sysHash = currentSystemId.split('').reduce((h, c) => (Math.imul(31, h) + c.charCodeAt(0)) | 0, 0);
         selectTargetRoute(mulberry32(daySeed ^ sysHash));
@@ -146,20 +122,15 @@ function startNewGame() {
         selectTargetRoute();
         isDailyRoute = false;
     }
-
     routeLayer.clearLayers();
     displayRouteWithColor(targetRoute, '#00ff41');
-
     document.getElementById('gamePrompt').textContent = 'Guess the route!';
     setBlankMap(true);
-
     document.querySelectorAll('.route-btn').forEach(btn => {
         btn.classList.remove('active', 'correct', 'wrong', 'disabled');
     });
-
     updateGameUI();
 }
-
 function displayRouteWithColor(route, color) {
     const layer = L.geoJSON(route, {
         style: { color, weight: 4, opacity: 0.95, lineCap: 'round', lineJoin: 'round' }
@@ -168,15 +139,11 @@ function displayRouteWithColor(route, color) {
     const bounds = layer.getBounds();
     if (bounds.isValid()) map.fitBounds(bounds, { padding: [50, 50] });
 }
-
 function updateGameUI() {
     document.getElementById('guessCount').textContent = guessCount;
-
     const badge = document.getElementById('dailyBadge');
     badge.style.display = isDailyRoute ? 'inline-block' : 'none';
-
     const shareBtn = document.getElementById('btnShare');
-
     if (gameOver) {
         document.getElementById('gamePrompt').style.display = 'none';
         document.getElementById('routeDetails').style.display = 'flex';
@@ -192,13 +159,11 @@ function updateGameUI() {
         shareBtn.style.display = 'none';
     }
 }
-
 function updateRouteInfo(properties) {
     document.getElementById('routeNumber').textContent = properties.lineabbr;
     document.getElementById('routeName').textContent = properties.linename;
     document.getElementById('routeCategory').textContent = properties.category;
 }
-
 function setBlankMap(active) {
     if (active && !isBlankMapActive) {
         map.removeLayer(darkTileLayer);
@@ -210,7 +175,6 @@ function setBlankMap(active) {
         isBlankMapActive = false;
     }
 }
-
 function createRouteButtons() {
     if (!routeData) return;
     const container = document.getElementById('routesContainer');
@@ -224,13 +188,10 @@ function createRouteButtons() {
         container.appendChild(btn);
     });
 }
-
 function onRouteButtonClick(routeIndex) {
     if (!routeData || gameOver) return;
-
     const btn = document.querySelector(`[data-index="${routeIndex}"]`);
     const alreadyGuessed = wrongRouteIndices.includes(routeIndex);
-
     if (routeIndex === targetRouteIndex) {
         guessCount++;
         gameOver = true;
@@ -263,19 +224,19 @@ function giveUp() {
     document.querySelectorAll('.route-btn').forEach(b => b.classList.add('disabled'));
     setBlankMap(false);
 }
-
 function shareResult() {
     const sys = TRANSIT_SYSTEMS.find(s => s.id === currentSystemId);
     const routeName = targetRoute.properties.lineabbr;
     const squares = wrongRouteIndices.map(() => '🟥').join('');
-    const prefix = isDailyRoute ? `🚌 RoutleClone — Daily (${sys.name})` : `🚌 RoutleClone (${sys.name})`;
+    const now = new Date();
+    const date = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const prefix = isDailyRoute ? `🚌 RoutleClone — Daily ${date} (${sys.name})` : `🚌 RoutleClone (${sys.name})`;
     let text;
     if (gaveUp) {
         text = `${prefix}\nRoute ${routeName} — gave up after ${guessCount} guess${guessCount !== 1 ? 'es' : ''}\n${squares}\nhttps://saltflower.github.io/routleclone/`;
     } else {
         text = `${prefix}\nRoute ${routeName} — solved in ${guessCount} guess${guessCount !== 1 ? 'es' : ''}!\n${squares}🟩\nhttps://saltflower.github.io/routleclone/`;
     }
-
     navigator.clipboard.writeText(text).then(() => {
         const btn = document.getElementById('btnShare');
         btn.textContent = 'Copied! ✓';
