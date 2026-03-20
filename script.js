@@ -229,12 +229,10 @@ function onRouteButtonClick(routeIndex) {
     if (!routeData || gameOver) return;
 
     const btn = document.querySelector(`[data-index="${routeIndex}"]`);
-    if (btn && btn.classList.contains('disabled')) return;
-
-    guessCount++;
-    updateGameUI();
+    const alreadyGuessed = wrongRouteIndices.includes(routeIndex);
 
     if (routeIndex === targetRouteIndex) {
+        guessCount++;
         gameOver = true;
         updateRouteInfo(targetRoute.properties);
         updateGameUI();
@@ -242,9 +240,13 @@ function onRouteButtonClick(routeIndex) {
         document.querySelectorAll('.route-btn').forEach(b => b.classList.add('disabled'));
         setBlankMap(false);
     } else {
-        if (!wrongRouteIndices.includes(routeIndex)) wrongRouteIndices.push(routeIndex);
-        if (btn) btn.classList.add('wrong', 'disabled');
-        displayRouteWithColor(routeData.features[routeIndex], '#ff1744');
+        if (!alreadyGuessed) {
+            guessCount++;
+            wrongRouteIndices.push(routeIndex);
+            if (btn) btn.classList.add('wrong', 'disabled');
+            displayRouteWithColor(routeData.features[routeIndex], '#ff1744');
+            updateGameUI();
+        }
     }
 }
 
