@@ -228,6 +228,9 @@ function createRouteButtons() {
 function onRouteButtonClick(routeIndex) {
     if (!routeData || gameOver) return;
 
+    const btn = document.querySelector(`[data-index="${routeIndex}"]`);
+    if (btn && btn.classList.contains('disabled')) return;
+
     guessCount++;
     updateGameUI();
 
@@ -235,13 +238,11 @@ function onRouteButtonClick(routeIndex) {
         gameOver = true;
         updateRouteInfo(targetRoute.properties);
         updateGameUI();
-        const btn = document.querySelector(`[data-index="${routeIndex}"]`);
         if (btn) btn.classList.add('correct');
         document.querySelectorAll('.route-btn').forEach(b => b.classList.add('disabled'));
         setBlankMap(false);
     } else {
         if (!wrongRouteIndices.includes(routeIndex)) wrongRouteIndices.push(routeIndex);
-        const btn = document.querySelector(`[data-index="${routeIndex}"]`);
         if (btn) btn.classList.add('wrong', 'disabled');
         displayRouteWithColor(routeData.features[routeIndex], '#ff1744');
     }
@@ -265,7 +266,7 @@ function shareResult() {
     const sys = TRANSIT_SYSTEMS.find(s => s.id === currentSystemId);
     const routeName = targetRoute.properties.lineabbr;
     const squares = wrongRouteIndices.map(() => '🟥').join('');
-    const prefix = isDailyRoute ? `🚌 Routle — Daily (${sys.name})` : `🚌 Routle (${sys.name})`;
+    const prefix = isDailyRoute ? `🚌 RoutleClone — Daily (${sys.name})` : `🚌 RoutleClone (${sys.name})`;
     let text;
     if (gaveUp) {
         text = `${prefix}\nRoute ${routeName} — gave up after ${guessCount} guess${guessCount !== 1 ? 'es' : ''}\n${squares}`;
